@@ -11,10 +11,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Install Helm
-        uses: marketplace/actions/install-helm@v1
+        uses: azure/setup-helm@v3
         with:
-          version: 2.16.9
+          version: v3.10.0
+
       - name: Package Helm Charts
         run: |
           helm package charts/* --destination .
