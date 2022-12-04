@@ -1,0 +1,5 @@
+configMap: {}
+  # appsettings.configmap.json: |
+  #   {
+  #     "Logging": {}
+  #   }

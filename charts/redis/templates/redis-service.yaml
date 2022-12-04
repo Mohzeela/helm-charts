@@ -1,0 +1,16 @@
+{{- if .Values.redis.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "service.fullname" . }}-redis
+  labels:
+    {{- include "service.redis.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - port: 6379
+      protocol: TCP
+      targetPort: 6379
+  selector:
+    {{- include "service.redis.selectorLabels" . | nindent 4 }}
+{{- end }}

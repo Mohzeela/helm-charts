@@ -1,0 +1,54 @@
+{{- if .Values.cronJob.enabled }}
+{{- $fullName := include "service.fullname" . -}}
+{{- $labels := include "service.labels" . -}}
+{{- $Namespace := .Release.Namespace -}}
+{{- $cronImage := .Values.image.repositoryWithTag  -}}
+{{- $useBuildImage := .Values.cronJob.useBuildImage -}}
+{{- range .Values.cronJob.config }}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ $fullName }}-{{ .name }}
+  labels:
+    {{- $labels | nindent 4 }}
+  annotations: 
+    linkerd.io/inject: disabled    
+  namespace: {{ $Namespace }}
+spec:
+  schedule: {{ .schedule | quote }}
+  successfulJobsHistoryLimit: {{ .successfulJobsHistoryLimit }}
+  jobTemplate:
+    metadata:
+      annotations: 
+        linkerd.io/inject: disabled 
+    spec:
+      template:
+        metadata:
+          annotations: 
+            linkerd.io/inject: disabled
+        spec:
+          containers:
+          - name:  {{ $fullName }}-{{ .name }}
+            image: {{ $useBuildImage | ternary $cronImage .image }}
+            {{- with .env}}
+            env: 
+                {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with .volumeMounts}}
+            volumeMounts:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with .args }}
+            args:
+            {{- range . }}
+            - {{ . }}
+            {{- end }}
+            {{- end }}
+          restartPolicy: OnFailure
+          {{- with .volumes}}
+          volumes:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
+---          
+{{- end }}
+{{- end }}

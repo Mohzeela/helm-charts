@@ -1,0 +1,8 @@
+# override theses values if you want to use a specific service account for this deployment.
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  name:

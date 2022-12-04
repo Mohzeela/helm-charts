@@ -1,0 +1,35 @@
+{{- if .Values.redis.enabled -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "service.fullname" . }}-redis
+spec:
+  selector:
+    matchLabels:
+      {{- include "service.redis.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "service.fullname" . }}-redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "service.redis.labels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - image: redis:{{ .Values.redis.version }}
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: {{ include "service.fullname" . }}-redis
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ include "service.fullname" . }}-redis
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi
+{{- end }}

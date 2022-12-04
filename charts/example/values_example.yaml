@@ -1,0 +1,224 @@
+# Default values for service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your charts.
+
+# default to the dev environment.
+enviroment: "dev"
+
+# default to 1 replica count only. 
+replicaCount: 1
+
+checkovSkippedIDs: 
+  - "CKV_K8S_11" # CKV_K8S_11: "CPU limits should be set" Guide: https://docs.bridgecrew.io/docs/bc_k8s_10
+  - "CKV_K8S_13" # CKV_K8S_13: "Memory limits should be set" Guide: https://docs.bridgecrew.io/docs/bc_k8s_12
+  - "CKV_K8S_10" # CKV_K8S_10: "CPU requests should be set" Guide: https://docs.bridgecrew.io/docs/bc_k8s_9
+  - "CKV_K8S_12" # CKV_K8S_12: "Memory requests should be set" Guide: https://docs.bridgecrew.io/docs/bc_k8s_11
+  - "CKV_K8S_43" # CKV_K8S_43: "Image should use digest" Guide: https://docs.bridgecrew.io/docs/bc_k8s_39
+  - "CKV_K8S_35" # CKV_K8S_35: "Prefer using secrets as files over secrets as environment variables" Guide: https://docs.bridgecrew.io/docs/bc_k8s_33
+
+# this is the image that will be deployed via the helm template. 
+# this value should be overriden by the service.
+image:
+  repository: 563178737752.dkr.ecr.eu-west-1.amazonaws.com/default-helm-image
+  pullPolicy: Always
+  tag: "no-tag"
+  repositoryWithTag: ""
+
+# Enviroment variables to use in deployment
+env: []
+  # - name: env-1
+  #   value: "value-1"
+  # - name: env-2
+  #   value: "value2"
+
+# this value needs to be overriden if you are using image pull secrets 
+imagePullSecrets: []
+
+# these values may need to be overridden if you are not specifying a deployment name via the command line
+# when invoking helm.
+nameOverride: ""
+fullnameOverride: ""
+
+# default horizonal pod autoscale rules.
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 90
+
+# override theses values if you want to use a specific service account for this deployment.
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podAnnotations: 
+  # see https://github.com/kubernetes/kubernetes/blob/release-1.4/docs/design/seccomp.md for more information
+  # options are "runtime/default" (container runtime defaults), "unconfined" (no restriction), "localhost/<profile-name>" (custom rules)
+  # Docker defaults can be found at  https://github.com/moby/moby/blob/master/profiles/seccomp/default.json
+  seccomp.security.alpha.kubernetes.io/pod: runtime/default # security patch
+
+automountServiceAccountToken: false
+
+podSecurityContext: {}
+  # runAsNonRoot: true
+  # fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL                         # revoke all capabilities 
+    add: []                         # manually add only the minimum capabilities needed
+  readOnlyRootFilesystem: true      # prevent files from being created or modified 
+  runAsNonRoot: true                # prevent running as "root" user
+  runAsUser: 20000                  # prevent running as a user id that exists on the host (eg: uid 1000 belonging to first non-root host user)
+  allowPrivilegeEscalation: false   # prevent setuid binaries (eg: sudo) running as root
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# default values for configuring the service.
+service:
+  enabled: true
+  type: ClusterIP
+  port: 8080
+
+# define the ingress for the service.
+# these would need to be overridden per service.
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  host: chart-example.local
+  paths: ["/"]
+  hosts: []
+
+# define the default values for the deployment
+deployment:
+  enabled: true
+  containerPort: 8080
+  annotations: 
+    # see https://github.com/kubernetes/kubernetes/blob/release-1.4/docs/design/seccomp.md for more information
+    # options are "runtime/default" (container runtime defaults), "unconfined" (no restriction), "localhost/<profile-name>" (custom rules)
+    # Docker defaults can be found at  https://github.com/moby/moby/blob/master/profiles/seccomp/default.json
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default # security patch
+  labels: 
+    company: hc
+    subsystem: unknown
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 30
+  revisionHistoryLimit: 5
+
+# by default, we expect the liveness probe to hit `/ping`
+livenessProbe:
+  failureThreshold: 3
+  httpGet:
+    path: /ping
+    port: 8080
+  initialDelaySeconds: 20
+  periodSeconds: 30
+  timeoutSeconds: 20
+
+# by default, we expect the readiness probe to hit `/ping`
+readinessProbe:
+  failureThreshold: 3
+  httpGet:
+    path: /ping
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 10
+
+# Ensure we have the necessary volumes mapped for NLog to work as expected
+extraVolumes: {}
+  # - name: test
+  #   configMap:
+  #     name: test
+extraVolumeMounts: {}
+  # - name: test
+  #   mountPath: /app/test
+
+# this section handles the init containers for running database migrations.
+initContainers:
+  migrations: false
+  env: []
+  # - name: env-1
+  #   value: "value-1"
+  # - name: env-2
+  #   value: "value2"
+  workingDir: /app
+  command: [] #["/bin/sh","-c"]
+  args: [] #["echo \"Migration Customer Starting\""]
+
+
+configMap: {}
+  # appsettings.configmap.json: |
+  #   {
+  #     "Logging": {}
+  #   }
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+cronJob:
+  enabled: false
+  useBuildImage: false
+  config: []
+#     - name: order-update-cron-1
+#       image: buildpack-deps:curl
+#       schedule: '0 * * * *'
+#       successfulJobsHistoryLimit: 3
+#       env:
+#       - name: test-1
+#         value: value-1
+#       - name: test-2
+#         value: value-2
+#       volumeMounts:
+#       - name: secrets
+#         mountPath: /app/secrets
+#         readOnly: true
+#       volumes:
+#       - name: secrets
+#         secret:
+#           secretName: secret-name
+#     - name: order-update-cron-1
+#       image: buildpack-deps:curl
+#       schedule: '0 * * * *'
+#       successfulJobsHistoryLimit: 3
+#       env:
+#       - name: test-1
+#         value: value-1
+#       - name: test-2
+#         value: value-2
+#       args: ["/bin/sh", "-ec", "curl google.com"]
+
+redis:
+  enabled: false
+  version: "6.0"

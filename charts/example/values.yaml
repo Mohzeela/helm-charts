@@ -1,0 +1,41 @@
+configMap:
+  appsettings.configmap.json: |
+    {
+      "Logging": "debug"
+    }
+
+ingress:
+  enabled: true
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  host: test.hc.com
+  paths: ["/*"]
+
+initContainers:
+  migrations: true
+  env:
+  - name: env-1
+    value: "value-1"
+  - name: env-2
+    value: "value2"
+  workingDir: /app
+  command: ["/bin/sh","-c"]
+  args: ["echo \"Migration Customer Starting\""]
+
+cronJob:
+  enabled: true
+  config: 
+    - name: order-update-cron-1
+      image: buildpack-deps:curl
+      schedule: '0 * * * *'
+      successfulJobsHistoryLimit: 3
+      env: 
+      - name: test-1
+        value: value-1
+      - name: test-2
+        value: value-2
+      args: ["/bin/sh", "-ec", "curl google.com"]
+
+# redis:
+#   enabled: true
+#   version: "6.0.9"

@@ -1,0 +1,150 @@
+{{- if .Values.deployment.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "service.fullname" . }}
+  labels:
+    {{- include "service.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    {{- include "service.deployment.annotations" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+{{- with .Values.deployment.strategy }}
+  strategy: 
+    {{- toYaml . | nindent 4 }}
+{{- end }}  
+  minReadySeconds: {{ .Values.deployment.minReadySeconds }}
+  revisionHistoryLimit: {{ .Values.deployment.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      labels:
+        {{- include "service.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "service.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Release.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Development"
+            - name: ELASTIC_APM_SERVICE_NAME
+              value: "hc-demodomain-stage"
+            - name: ELASTIC_APM_TRANSACTION_SAMPLE_RATE
+              value: "1.0"
+            - name: ELASTIC_APM_METRICS_INTERVAL
+              value: "0s"
+            - name: ELASTIC_APM_SERVER_URLS
+              value: "http://apm-server.kube-system.svc:8200"
+            - name: ELASTIC_APM_LOG_LEVEL
+              value: "Error"
+            - name: ELK_SERVICE_NAME
+              value: "hc-demodomain-stage"
+            - name: Logging__LogLevel__Elastic.Apm
+              value: "Error"
+            - name: Logging__LogLevel__Default
+              valueFrom:
+                configMapKeyRef:
+                  key: logging-loglevel-default
+                  name: hc-config
+            - name: Logging__LogLevel__System
+              valueFrom:
+                configMapKeyRef:
+                  key: logging-loglevel-system
+                  name: hc-config
+            - name: Logging__LogLevel__Microsoft
+              valueFrom:
+                configMapKeyRef:
+                  key: logging-loglevel-microsoft
+                  name: hc-config
+          ports:
+            - name: http
+              containerPort: {{ .Values.deployment.containerPort }}
+              protocol: TCP
+          volumeMounts: 
+          - name: tmp
+            mountPath: /tmp
+        {{- if .Values.configMap }}  
+          - mountPath: /app/appsettings
+            name: appsettings
+        {{- end }}
+          - name: nlogconfig
+            mountPath: /app/nlog
+        {{- with .Values.extraVolumeMounts }}
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.livenessProbe }}
+          livenessProbe: 
+            {{- toYaml .Values.livenessProbe  | nindent 12 }}
+        {{- end }} 
+        {{- if .Values.readinessProbe }}
+          readinessProbe: 
+            {{- toYaml .Values.readinessProbe  | nindent 12 }}
+        {{- end }} 
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- if eq .Values.initContainers.migrations true }}
+      initContainers: 
+        - name: init-db-{{ .Release.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        {{- with .Values.initContainers.env}}
+          env: 
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+          workingDir: {{ .Values.initContainers.workingDir }}
+        {{- with .Values.initContainers.command }}
+          command: 
+          {{- range . }}
+            - {{ . }}
+          {{- end }}
+        {{- end }}
+        {{- with .Values.initContainers.args }}
+          args:
+          {{- range . }}
+            - {{ . }}
+          {{- end }}
+        {{- end }}
+    {{- end }}  
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+      - name: tmp
+        emptyDir:
+          medium: Memory
+      - name: nlogconfig
+        configMap:
+          name: nlog-configmap
+    {{- if .Values.configMap}}
+      - name: appsettings
+        configMap:
+          name: {{ include "service.fullname" . }}-configmap
+    {{- end }}
+    {{- with .Values.extraVolumes }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}
