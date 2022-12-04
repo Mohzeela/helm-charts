@@ -1,0 +1,42 @@
+name: Publish Helm Charts
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Helm
+        uses: marketplace/actions/install-helm@v1
+        with:
+          version: 2.16.9
+      - name: Package Helm Charts
+        run: |
+          helm package charts/* --destination .
+      - name: Generate index.yaml
+        run: |
+          helm repo index .
+          ls
+     
+      - name: Checkout gh-pages branch
+        run: |
+          git checkout -b gh-pages
+          git reset --hard
+          git clean -fdx
+
+      - name: Copy charts and index
+        run: |
+          ls
+          cp -n *.tgz .
+          cp -n index.yaml .
+
+      - name: Commit and push changes
+        run: |
+          git add *.tgz index.yaml
+          git commit -m "Add charts and index"
+          git push -u origin gh-pages
