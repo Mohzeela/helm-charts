@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p docs/
           mv -n *.tgz docs/
-          mv -n index.yaml .
+          mv -n index.yaml docs/
 
       - name: Commit and push changes
         run: |
