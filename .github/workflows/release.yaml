@@ -33,12 +33,14 @@ jobs:
 
       - name: Copy charts and index
         run: |
-          ls
-          cp -n *.tgz .
-          cp -n index.yaml .
+          mkdir -p docs/
+          mv -n *.tgz docs/
+          mv -n index.yaml .
 
       - name: Commit and push changes
         run: |
+          git config user.name "HC"
+          git config user.email "hc@hc.com"
           git add *.tgz index.yaml
           git commit -m "Add charts and index"
           git push -u origin gh-pages
