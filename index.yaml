@@ -1,0 +1,91 @@
+apiVersion: v1
+entries:
+  configmap:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-12-04T22:47:50.184525243Z"
+    description: A Helm chart for ConfigMaps
+    digest: 121a52cd524cea6f7df48de1c736491ad06dbdfb0c1a979280c13c5b584f5107
+    name: configmap
+    type: application
+    urls:
+    - configmap-0.1.1.tgz
+    version: 0.1.1
+  cronjob:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-12-04T22:47:50.184715647Z"
+    description: A Helm chart for CronJobs
+    digest: ec862b55bb5f9e09faf928041f3e9bb6320da6ed2ba3967ba47edc639359123f
+    name: cronjob
+    type: application
+    urls:
+    - cronjob-0.1.1.tgz
+    version: 0.1.1
+  deployment:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-12-04T22:47:50.184925452Z"
+    description: A Helm chart for Deployments
+    digest: 09c0e9a14ee3a46bd41a17d5bb7914f5f7138092432fd7fb7d1fec419073d81f
+    name: deployment
+    type: application
+    urls:
+    - deployment-0.1.1.tgz
+    version: 0.1.1
+  hpa:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-12-04T22:47:50.185147057Z"
+    description: A Helm chart for HPA
+    digest: 9e896534f5730a9fb925a9cea7de1eb841c9e10a1f3d9f19a88c8786f73446a1
+    name: hpa
+    type: application
+    urls:
+    - hpa-0.1.2.tgz
+    version: 0.1.2
+  ingress:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-12-04T22:47:50.185363761Z"
+    description: A Helm chart for Ingress
+    digest: df940ff478dc0384563370c90bc9f28e7544ac6c357dd6203ff5c453aac4daca
+    name: ingress
+    type: application
+    urls:
+    - ingress-0.1.1.tgz
+    version: 0.1.1
+  redis:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-12-04T22:47:50.185505664Z"
+    description: A Helm chart for Redis
+    digest: d641ee03c4dd65d92d9c4480fdad7c017c8cb2ea7bb84304c3c0cf9c3d7b8dfb
+    name: redis
+    type: application
+    urls:
+    - redis-0.1.1.tgz
+    version: 0.1.1
+  service:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-12-04T22:47:50.185856772Z"
+    description: A Helm chart for Kubernetes
+    digest: 95f96c975d5e431847dbbe56fc4b0f29cd183dc8b6179b9a4cdba1d37f3734ae
+    name: service
+    type: application
+    urls:
+    - service-0.1.0.tgz
+    version: 0.1.0
+  serviceaccount:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2022-12-04T22:47:50.185999675Z"
+    description: A Helm chart for Service Accounts
+    digest: 4a4b52fc423cc3f82ebf4c82b9999085e012d5f9e0f27e6c0f9c85a6de6d9e21
+    name: serviceaccount
+    type: application
+    urls:
+    - serviceaccount-0.1.1.tgz
+    version: 0.1.1
+generated: "2022-12-04T22:47:50.184203836Z"
